@@ -14,6 +14,11 @@ const isValid = function (value) {
     return true;
 };
 
+const isValidImg = (img) => {
+    const reg = /.+\.(?:(jpg|gif|png|jpeg|jfif|JPG|PNG|GIF|JPEG|JFIF))/g;
+    return reg.test(img);
+  };
+
 const validImage = function (image) {
     return /(\.jpg|\.jpeg|\.bmp|\.gif|\.PNG|\.png)$/.test(image)
 }
@@ -62,4 +67,4 @@ let isValidPrice=(price)=>{
 
 
 
-module.exports={isValidPrice,isValid,isValidBody,isValidName,isValidEmail,isValidPassword,isValidObjectId,isValidPincode,isValidPhone,isValidSize,isValidNumber,isValidStatus,validImage}
+module.exports={isValidPrice,isValidImg,isValid,isValidBody,isValidName,isValidEmail,isValidPassword,isValidObjectId,isValidPincode,isValidPhone,isValidSize,isValidNumber,isValidStatus,validImage}

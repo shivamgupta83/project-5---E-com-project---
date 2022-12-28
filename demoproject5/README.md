@@ -257,6 +257,25 @@ Send [form-data](https://developer.mozilla.org/en-US/docs/Web/API/FormData)
   updatedAt: {timestamp},
 }
 ```
+<!-- 
+if(removeProduct == 1 ){
+        items.forEach(a=>{ if( a.productId == productId && a.quantity > 0 ) a.quantity = a.quantity - 1  })
+        const item = items.filter(a=> a.quantity!==0 )
+        cart.items = item
+        cart.totalPrice = cart.totalPrice - product.price  
+        cart.totalItems =  item.length
+        cart.save()
+        return res.status(200).json(new sucResponse("Cart Updated Successfully !" , cart))
+    } 
+    items.forEach(a=>{ if( a.productId == productId && a.quantity > 0 ) a.quantity = 0 })
+    const item = items.filter(a=> a.quantity!==0 )
+    cart.items = item
+    cart.totalPrice =cart.totalPrice - productPrices
+    cart.totalItems =  item.length
+    cart.save() -->
+
+
+
 
 
 ## Cart APIs (_authentication required as authorization header - bearer token_)

@@ -8,12 +8,13 @@ const validate = require("../Validators/validation")
 let Authentication = async (req, res, next) => {
     try {
         let bearerHeader = req.headers.authorization;
-        if (typeof bearerHeader == "undefined") {
+        if (typeof bearerHeader == "undefined"||bearerHeader.trim().length==0) {
             return res.status(401).send({ status: false, message: "Token is missing! please enter token." });
         }
         let bearerToken = bearerHeader.split(' '); // converting it to array 
         let token = bearerToken[1];
-        jwt.verify(token, "project/booksManagementGroup05", function (error, data) {
+         if(!token) return res.status(400).send({status:false,msg:"token is not present"})
+        jwt.verify(token, "shivam", function (error, data) {
             if (error && error.message == "jwt expired") {
                 return res.status(401).send({ status: false, message: "Session expired! Please login again." })
             }

@@ -42,12 +42,17 @@ const createUser = async function (req, res) {
         //=========================== validation for phone ==================================================
         if (!phone) return res.status(400).send({ status: false, msg: "phone is mandatory" })
         if (!validator.isValidPhone(phone)) return res.status(400).send({ status: false, msg: "phone number is invalid , it should be starting with 6-9 and having 10 digits" })
-        let phoneCheck = await userModel.findOne({ phone: requestBody.phone })
+        let phoneCheck = await userModel.findOne({ phone:phone })
         if (phoneCheck) return res.status(409).send({ status: false, msg: "phone number is already used" })
 
         //============================== validation for profileimage =====================================
+        
         if (!files && files.length == 0) return res.status(400).send({ status: false, msg: "profileImage is mandatory" })
+       
+        if(!validator.isValidImg(files[0].originalname)) return res.status(400).send({status:false , msg: "profileImage is not valid"})
+       
         let Image = await uploadFile(files[0]) // using aws for link creation 
+        
         if (!validator.validImage(Image)) {
             return res.status(400).send({ status: false, msg: "profileImage is in incorrect format" })
         }
@@ -94,10 +99,10 @@ const createUser = async function (req, res) {
 
         //=========================== user creation ==========================================
         let created = await userModel.create(requestBody)
-        res.status(201).send({ status: true, msg: "User successfully created", data: created })
+       return res.status(201).send({ status: true, msg: "User successfully created", data: created })
     }
     catch (err) {
-        res.status(500).send({ status: false, msg: err.message })
+       return res.status(500).send({ status: false, msg: err.message })
     }
 }
 
@@ -132,7 +137,7 @@ const loginUser = async function (req, res) {
             return res.status(400).send({ status: false, message: "wrong password" })
         }
         //=================================== token creation ================================================
-        let token = jwt.sign({ "userId": user._id }, "project/booksManagementGroup05", { expiresIn: '24h' });
+        let token = jwt.sign({ "userId": user._id }, "shivam", { expiresIn: '24h' });
 
 
         return res.status(200).send({ status: true, message: "login successfully", data: { userId: user._id, token: token } })
@@ -143,15 +148,7 @@ const loginUser = async function (req, res) {
 
 
 //================================= getting userdetails ===================================================
-const getUser = async function (req, res) {
-    try {
-        let userId = req.params.userId;
-        const user = await userModel.findOne({ _id: userId })
-        return res.status(200).send({ status: true, message: 'User Details', data: user })
-    } catch (error) {
-        res.status(500).send({ status: false, message: error.message })
-    }
-}
+
 
 const getUserData = async function (req, res) {
     try {
@@ -160,7 +157,7 @@ const getUserData = async function (req, res) {
 
         if (!mongoose.isValidObjectId(data)) return res.status(400).send({ status: false, msg: "userId is not valid" })
 
-        let userData = await userModel.findOne({ _id: data })
+        let userData = await userModel.findById(data)
         if (!userData) return res.status(404).send({ status: false, msg: "user data is not present" })
 
 
@@ -186,17 +183,17 @@ return res.status(400).send({ status: false, message: "data required for profile
 let update ={}
 
 if(fname) {
+    if (!validator.isValid(fname)) return res.status(400).send({ status: false, message: "fname is wrong" });
     if (!validator.isValidName(fname)) return res.status(400).send({ status: false, msg: "fname is not valid" })
-
     update.fname=fname
 }
 if(lname) {
+    if (!validator.isValid(lname)) return res.status(400).send({ status: false, message: "lname is wrong" });
     if (!validator.isValidName(lname)) return res.status(400).send({ status: false, msg: "fname is not valid" })
-
     update.lname=lname
 }
 if(email){
-
+    if (!validator.isValid(email)) return res.status(400).send({ status: false, message: "email is wrong" });
     if (!validator.isValidEmail(email)) {
         return res.status(400).send({ status: false, message: `Please fill valid or mandatory email ` })
     }
@@ -207,8 +204,9 @@ update.email=email
 
 }
 if(files.length>0){
-
-    if (!files && files.length == 0) return res.status(400).send({ status: false, msg: "profileImage is mandatory" })
+    if (!validator.isValidImg(files[0])){
+        return res.status(400).send({ status: false, msg: "profileImage is in incorrect format" })
+                }
     let Image = await uploadFile(files[0])  
     if (!validator.validImage(Image)) {
         return res.status(400).send({ status: false, msg: "profileImage is in incorrect format" })
@@ -217,6 +215,8 @@ if(files.length>0){
 }
 
 if(phone){
+
+    if (!validator.isValid(phone)) return res.status(400).send({ status: false, message: "phone is wrong" });
     if (!validator.isValidPhone(phone)) return res.status(400).send({ status: false, msg: "phone number is invalid , it should be starting with 6-9 and having 10 digits" })
     let phoneCheck = await userModel.findOne({ phone: phone })
     if (phoneCheck) return res.status(409).send({ status: false, msg: "phone number is already used" })
@@ -225,17 +225,19 @@ update.phone=phone
 }
 
 if(password){
-
+    if (!validator.isValid(password)) return res.status(400).send({ status: false, message: "password is wrong" });
     if (!validator.isValidPassword(password)) return res.status(400).send({ status: false, message: "password is invalid ,it should be of minimum 8 digits and maximum of 15 and should have atleast one special character and one number & one uppercase letter" })
-    
-    update.password = await bcrypt.hash(password, 10)
-
+    const salt = await bcrypt.genSalt(saltRounts)
+    update.password = await bcrypt.hash(password,salt)
 }
 
 if(address){
-
+try{
        address=JSON.parse(address)
-   
+}catch{
+    res.status(400).send({status:false,msg:"address is not correct"})
+}
+
 if (address.shipping) {  
 
     if(typeof address.shipping != "object") return res.status(400).send({status:false,msg:"shipping should be object"})
@@ -244,6 +246,7 @@ if(address.shipping.street){
 
     if (!validator.isValidName(address.shipping.street)) return res.status(400).send({ status: false, msg: "street name is not valid" })
     update["address.shipping.street"]=address.shipping.street
+    console.log(update)
 }
 if(address.shipping.city){
 
@@ -288,4 +291,4 @@ return res.status(500).send({status:false,msg:err.message})
 }
 
 
-module.exports = { createUser, loginUser, getUserData ,getUser,updateUser}
+module.exports = { createUser, loginUser, getUserData ,updateUser}
