@@ -13,8 +13,10 @@ let Authentication = async (req, res, next) => {
         }
         let bearerToken = bearerHeader.split(' '); // converting it to array 
         let token = bearerToken[1];
-         if(!token) return res.status(400).send({status:false,msg:"token is not present"})
-        jwt.verify(token, "shivam", function (error, data) {
+         
+        if(!token) return res.status(400).send({status:false,msg:"token is not present"})
+        
+         jwt.verify(token, "shivam", function (error, data) {
             if (error && error.message == "jwt expired") {
                 return res.status(401).send({ status: false, message: "Session expired! Please login again." })
             }
@@ -39,7 +41,8 @@ let Authentication = async (req, res, next) => {
 let authorization = async function (req, res, next) {
     try {
         let userid = req.params.userId
-        let validUser = req.decodedToken // userid from token
+        let validUser = req.decodedToken
+        
         //===================== format of userid ===============================================
         if (!validate.isValidObjectId(userid)) {
             return res.status(400).send({ status: false, message: "Invalid Format of User Id" })
@@ -47,7 +50,7 @@ let authorization = async function (req, res, next) {
 
         let user = await userModel.findById(userid)
         if (user) {
-            let users = user._id.toString() //userId from user
+            let users = user._id.toString() 
             if (users !== validUser) {
                 return res.status(403).send({ status: false, message: "Sorry! Unauthorized User" })
             }
@@ -65,3 +68,5 @@ let authorization = async function (req, res, next) {
 
 module.exports.Authentication=Authentication
 module.exports.authorization=authorization
+
+

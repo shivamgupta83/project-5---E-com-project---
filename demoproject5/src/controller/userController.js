@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
 const saltRounts = 10
 const uploadFile= require("../aws/aws")
-
 const validator = require("../Validators/validation");
 const { default: mongoose } = require("mongoose");
 
@@ -235,7 +234,7 @@ if(address){
 try{
        address=JSON.parse(address)
 }catch{
-    res.status(400).send({status:false,msg:"address is not correct"})
+   return res.status(400).send({status:false,msg:"address is not correct"})
 }
 
 if (address.shipping) {  
